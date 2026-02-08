@@ -14,19 +14,32 @@
 
     <style>
         :root { --primary: #2e7d32; --secondary: #1976d2; --danger: #d32f2f; --bg: #f8f9fa; --card-bg: #ffffff; --btn-gray: #607d8b; }
-        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; color: #333; line-height: 1.4; overflow-x: hidden; }
+        body { font-family: 'Pretendard', sans-serif; background-color: var(--bg); margin: 0; padding: 10px; color: #333; line-height: 1.4; }
 
-        /* === [추가] 인트로 레이어 스타일 === */
+        /* === 인트로 레이어 (해상도 유지 및 페이드 효과) === */
         #intro-layer {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background-color: #ffffff; display: flex; flex-direction: column; justify-content: center; align-items: center;
             z-index: 99999; opacity: 1; transition: opacity 0.8s ease-in-out;
         }
-        .intro-img { width: 85%; max-width: 400px; height: auto; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px; }
-        .intro-text { font-size: 16px; color: #666; font-weight: 600; animation: blink 1.5s infinite; }
+        .intro-img-container {
+            width: 85%; max-width: 450px;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .intro-img { 
+            width: 100%; height: auto; border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            /* 원본 해상도 보존을 위한 렌더링 옵션 */
+            image-rendering: -webkit-optimize-contrast;
+            object-fit: contain;
+        }
+        .intro-text { 
+            margin-top: 25px; font-size: 15px; color: #666; font-weight: 600; 
+            letter-spacing: -0.5px; animation: blink 1.5s infinite; 
+        }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        /* ============================== */
 
+        /* === 원본 스타일 유지 === */
         .container { max-width: 500px; margin: auto; background: white; padding: 15px; border-radius: 24px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
         .header-container { margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; display: flex; flex-direction: column; }
         .header-title { color: var(--primary); margin: 0; font-size: 1.3em; font-weight: 800; text-align: center; width: 100%; }
@@ -48,18 +61,14 @@
         .player-item input { width: 16px; height: 16px; margin: 0; }
         .scoreboard { display: flex; justify-content: space-around; align-items: center; background: #2c3e50; color: white; padding: 15px; border-radius: 18px; margin: 12px 0; }
         .score-num { font-size: 2.5em; font-weight: 900; }
-        .match-card { background: #fff; border-radius: 14px; padding: 12px; margin-bottom: 10px; border: 1px solid #eee; }
+        .match-card { background: #fff; border-radius: 14px; padding: 12px; margin-bottom: 10px; border: 1px solid #eee; position: relative; }
         .match-btn-group { display: flex; gap: 8px; margin-top: 10px; }
         .match-btn-group button { padding: 8px; font-size: 13px; background: #f4f4f4; color: #555; }
         .selected-a { background: var(--secondary) !important; color: white !important; }
         .selected-b { background: var(--danger) !important; color: white !important; }
-        .type-badge { padding: 2px 6px; border-radius: 6px; font-weight: bold; font-size: 10px; color: white; margin-left: 6px; }
+        .type-badge { padding: 2px 6px; border-radius: 6px; font-weight: bold; font-size: 10px; color: white; margin-left: 6px; white-space: nowrap; }
         .type-singles { background-color: #9c27b0; }
         .type-doubles { background-color: #009688; }
-        
-        .win-prob { font-size: 13px; color: #aaa; font-weight: normal; margin: 0 4px; }
-        .win-prob.high { color: #ff5722; font-weight: 800; }
-
         #loading { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); z-index: 10000; justify-content: center; align-items: center; font-weight: bold; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); justify-content: center; align-items: center; z-index: 11000; }
         .modal-content { background: white; padding: 20px; border-radius: 20px; width: 90%; max-width: 420px; position: relative; max-height: 80vh; overflow-y: auto; }
@@ -67,54 +76,36 @@
         .modal-close-x { font-size: 28px; color: #aaa; cursor: pointer; line-height: 1; }
         .confetti { position: fixed; width: 8px; height: 8px; z-index: 12000; top: -10px; animation: fall linear forwards; }
         @keyframes fall { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
-        
         table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
         th { background: var(--primary); color: white; padding: 10px 4px; font-size: 13px; }
         td { padding: 12px 4px; text-align: center; border-bottom: 1px solid #eee; }
         .rank-num { font-weight: 800; font-size: 15px; color: #666; }
         .rank-name { font-size: 15px; font-weight: 800; }
         .rank-winrate { font-size: 16px; font-weight: 800; }
-
         .period-btns { display: flex; gap: 4px; margin-bottom: 8px; width: 100%; }
         .btn-p { flex: 1; padding: 8px 2px; font-size: 15px; background: #eee; color: #666; border-radius: 8px; }
         .btn-p.active { background: var(--primary); color: white; }
-        .clickable-name { color: var(--secondary); text-decoration: underline; cursor: pointer; }
-        
+        .clickable-name { color: var(--secondary); text-decoration: underline; cursor: pointer; font-weight: 800; }
         .vs-detail { font-size: 11px; color: #666; display: block; margin-top: 2px; }
         .vs-detail b { font-size: 13px; color: #333; }
         .vs-detail-rate { font-size: 12px; color: var(--primary); font-weight: 800; margin-left: 2px; }
-        
-        #teamPreviewArea { 
-            text-align: center; 
-            font-size: 15px; 
-            font-weight: 800; 
-            color: #444; 
-            margin-bottom: 15px; 
-            background: #f0f0f0; 
-            padding: 10px 12px; 
-            border-radius: 12px;
-            line-height: 1.3;
-        }
+        #teamPreviewArea { text-align: center; font-size: 15px; font-weight: 800; color: #444; margin-bottom: 15px; background: #f0f0f0; padding: 10px 12px; border-radius: 12px; line-height: 1.3; }
         .team-label-a { color: var(--secondary); font-size: 13px; }
         .team-label-b { color: var(--danger); font-size: 13px; }
         .vs-divider { display: block; font-size: 11px; color: #bbb; margin: 2px 0; font-weight: normal; }
-
-        .match-player-name {
-            white-space: nowrap; 
-            overflow: hidden; 
-            text-overflow: ellipsis;
-            font-size: 14px; 
-        }
     </style>
 </head>
 <body>
 
 <div id="intro-layer">
-    <img src="https://drive.google.com/uc?export=view&id=1yvD_3kbR5HR737dbrd7gyb0SH6EyNoPb" class="intro-img" alt="Introduction">
-    <div class="intro-text">클라우드 데이터 접속중...</div>
+    <div class="intro-img-container">
+        <img src="https://i.ibb.co/mFqWJqLt/pingbot.jpg" class="intro-img" alt="Intro Image">
+    </div>
+    <div class="intro-text">클라우드 데이터 동기화 중...</div>
 </div>
 
 <div id="loading">데이터 동기화 중...</div>
+
 <div class="container">
     <div class="header-container">
         <div class="header-title">🏓 PING-PONG DB PRO</div>
@@ -215,7 +206,7 @@
     let isAlreadySaved = false;
 
     window.onload = function() {
-        // [추가] 인트로 2초 후 페이드아웃
+        // 인트로 2초 노출 후 페이드 아웃
         setTimeout(() => {
             const intro = document.getElementById('intro-layer');
             intro.style.opacity = '0';
@@ -228,7 +219,6 @@
         initPlayerList(); syncWithCloud();
     };
 
-    // --- Final v1.0 모든 JS 로직 유지 ---
     function setBalanceMode(mode) { currentBalanceMode = mode; document.getElementById('balance_tight').classList.toggle('active', mode === 'tight'); document.getElementById('balance_random').classList.toggle('active', mode === 'random'); }
     function initPlayerList() {
         const grid = document.getElementById('playerGrid'); grid.innerHTML = "";
@@ -345,14 +335,15 @@
         let wA=0, wB=0;
         Object.values(currentMatchData.results).forEach(v => (v==='A'?wA++:(v==='B'?wB++:0)));
         document.getElementById('scoreA').innerText = wA; document.getElementById('scoreB').innerText = wB;
+
         currentMatchData.lineups.forEach(m => {
             const win = currentMatchData.results[m.id];
             const div = document.createElement('div'); div.className = 'match-card';
-            div.innerHTML = `<small>#${m.id}</small><span class="type-badge ${m.type==='단식'?'type-singles':'type-doubles'}">${m.type}</span>
-                <div style="display:flex; justify-content:space-between; margin:8px 0; font-weight:bold;">
-                    <div style="flex:1;">${m.pA.join(', ')}</div><div style="color:#bbb;">VS</div><div style="flex:1; text-align:right;">${m.pB.join(', ')}</div>
+            div.innerHTML = `<small>#${m.id}</small><span class=\"type-badge ${m.type==='단식'?'type-singles':'type-doubles'}\">${m.type}</span>
+                <div style=\"display:flex; justify-content:space-between; margin:8px 0; font-weight:bold;\">
+                    <div style=\"flex:1;\">${m.pA.join(', ')}</div><div style=\"color:#bbb;\">VS</div><div style=\"flex:1; text-align:right;\">${m.pB.join(', ')}</div>
                 </div>
-                <div class="match-btn-group"><button class="${win==='A'?'selected-a':''}" onclick="record(${m.id},'A')">A 승</button><button class="${win==='B'?'selected-b':''}" onclick="record(${m.id},'B')">B 승</button></div>`;
+                <div class=\"match-btn-group\"><button class=\"${win==='A'?'selected-a':''}\" onclick=\"record(${m.id},'A')\">A 승</button><button class=\"${win==='B'?'selected-b':''}\" onclick=\"record(${m.id},'B')\">B 승</button></div>`;
             area.appendChild(div);
         });
     }
@@ -368,8 +359,10 @@
     async function saveToCloud(isAuto = false) {
         const key = getCurrentKey(); document.getElementById('loading').style.display = 'flex';
         db.matchHistory[key] = currentMatchData;
-        try { await fetch(API_URL, {method:"POST", body:JSON.stringify({type:"SAVE", db:db}), mode:'no-cors'}); isAlreadySaved = true; if(!isAuto) alert("저장됨"); await syncWithCloud(); }
-        catch(e) { alert("저장 실패"); } finally { document.getElementById('loading').style.display = 'none'; }
+        try { 
+            await fetch(API_URL, {method: "POST", body: JSON.stringify({type: "SAVE", db: db}), mode: 'no-cors'});
+            isAlreadySaved = true; if(!isAuto) alert("저장됨"); await syncWithCloud();
+        } catch(e) { alert("저장 실패"); } finally { document.getElementById('loading').style.display = 'none'; }
     }
 
     function handleManualSave() { if(confirm("결과를 최종 저장하시겠습니까?")) saveToCloud(); }
@@ -390,7 +383,10 @@
             });
         });
         let html = `<table><tr><th>상대</th><th>게임</th><th>승률</th></tr>`;
-        Object.entries(vsStats).sort((a,b)=>b[1].t-a[1].t).forEach(([n,d]) => { html += `<tr><td>${n}</td><td>${d.t}</td><td>${Math.round(d.w/d.t*100)}%</td></tr>`; });
+        Object.entries(vsStats).sort((a,b)=>b[1].t-a[1].t).forEach(([n,d]) => {
+            const rate = d.t === 0 ? 0 : Math.round(d.w/d.t*100);
+            html += `<tr><td><b>${n}</b></td><td>${d.t}</td><td><span class=\"vs-detail-rate\">${rate}%</span> (${d.w}승)</td></tr>`;
+        });
         document.getElementById('recordTableArea').innerHTML = html + "</table>"; openModal('recordModal');
     }
 
@@ -407,9 +403,16 @@
             });
         });
         let sorted = Object.entries(stats).filter(x=>x[1].total>0).sort((a,b) => (b[1].win/b[1].total) - (a[1].win/a[1].total));
-        let html = `<table><tr><th>순위</th><th>이름</th><th>게임</th><th>승률</th></tr>`;
-        sorted.forEach(([n, d], i) => { html += `<tr><td>${i+1}</td><td><b class="clickable-name" onclick="showVersusStats('${n}')">${n}</b></td><td>${d.total}</td><td>${((d.win/d.total)*100).toFixed(1)}%</td></tr>`; });
-        document.getElementById('rankingTableArea').innerHTML = html + "</table>";
+        let html = `<table><tr><th>순위</th><th>이름</th><th>게임</th><th>승수</th><th>승률</th></tr>`;
+        sorted.forEach(([n, d], i) => {
+            html += `<tr><td class=\"rank-num\">${i+1}</td>
+                <td><b class=\"clickable-name\" onclick=\"showVersusStats('${n}')\">${n}</b></td>
+                <td style=\"font-size:14px;\">${d.total}</td>
+                <td style=\"font-size:14px;\">${d.win}</td>
+                <td><b class=\"rank-winrate\" style=\"color:var(--primary)\">${((d.win/d.total)*100).toFixed(1)}%</b></td>
+            </tr>`; 
+        });
+        document.getElementById('rankingTableArea').innerHTML = sorted.length ? html + "</table>" : "<p style='text-align:center;'>기록 없음</p>";
     }
 
     function setQuickPeriod(m, btn) {
@@ -420,7 +423,7 @@
     }
 
     function triggerConfetti() {
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 50; i++) {
             const c = document.createElement('div'); c.className = 'confetti';
             c.style.left = Math.random() * 100 + 'vw'; c.style.backgroundColor = `hsl(${Math.random()*360}, 70%, 50%)`;
             c.style.animationDuration = (Math.random()*3+2)+'s'; document.body.appendChild(c);
@@ -428,8 +431,7 @@
         }
     }
 
-    async function resetDatabase() { if (prompt("비밀번호?") === "7640" && confirm("초기화?")) { db = { matchHistory: {} }; saveToCloud(); } }
-
+    async function resetDatabase() { if (prompt("관리자 암호?") === "7640" && confirm("모든 데이터를 초기화할까요?")) { db = { matchHistory: {} }; saveToCloud(); } }
     if ("serviceWorker" in navigator) { navigator.serviceWorker.register("./service-worker.js"); }
 </script>
 </body>
